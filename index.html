@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>INFYN — Estilo sin límites, tecnología a tu alcance</title>
+  <meta name="description" content="INFYN — Tecnología y perfumería de diseñador. Estilo sin límites, tecnología a tu alcance." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    /* ─── TOKENS ─────────────────────────────────────── */
+    :root {
+      --bg:        #000000;
+      --surface:   #0D0D0D;
+      --surface2:  #161616;
+      --border:    #1F1F1F;
+      --border2:   #2C2C2C;
+      --accent:    #FFFFFF;
+      --accent2:   #E0E0E0;
+      --accent-glow: rgba(255,255,255,0.06);
+      --text:      #FFFFFF;
+      --text2:     #888888;
+      --text3:     #3A3A3A;
+      --danger:    #C0392B;
+      --success:   #27AE60;
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body:    'DM Sans', system-ui, sans-serif;
+      --font-mono:    'DM Mono', monospace;
+      --radius:    12px;
+      --radius-sm: 6px;
+      --trans:     0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    /* ─── RESET ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-weight: 300;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: var(--font-body); cursor: pointer; border: none; background: none; }
+    img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    input, textarea, select {
+      font-family: var(--font-body);
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 14px;
+      width: 100%;
+      outline: none;
+      transition: border-color var(--trans);
+    }
+    input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+    select option { background: var(--surface2); }
+
+    /* ─── SCROLLBAR ──────────────────────────────────── */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    /* ─── LOADER ─────────────────────────────────────── */
+    #loader {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 20px;
+    }
+    #loader .logo-load {
+      font-family: var(--font-display);
+      font-size: 36px;
+      letter-spacing: 0.25em;
+      color: var(--text);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    #loader .bar {
+      width: 120px; height: 1px;
+      background: var(--border2);
+      position: relative; overflow: hidden;
+    }
+    #loader .bar::after {
+      content: '';
+      position: absolute; left: -40%; top: 0;
+      width: 40%; height: 100%;
+      background: var(--accent);
+      animation: slide 1s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+    @keyframes slide { 0%{left:-40%} 100%{left:140%} }
+
+    /* ─── NAVBAR ─────────────────────────────────────── */
+    #navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(8,8,8,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 22px;
+      letter-spacing: 0.3em;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-tagline {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--text3);
+      text-transform: uppercase;
+      display: none;
+    }
+    @media(min-width:640px){ .nav-tagline { display: block; } }
+    .nav-btn {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text2);
+      transition: all var(--trans);
+      font-size: 15px;
+      cursor: pointer;
+      background: var(--surface);
+    }
+    .nav-btn:hover { border-color: var(--text); color: var(--text); }
+
+    /* ─── HERO ───────────────────────────────────────── */
+    #hero {
+      padding: 80px 20px 60px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    #hero::before {
+      content: '';
+      position: absolute;
+      top: -100px; left: 50%; transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--text2);
+      margin-bottom: 20px;
+    }
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 8vw, 72px);
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+    .hero-title em { font-style: italic; color: var(--text); }
+    .hero-sub {
+      font-size: 14px;
+      color: var(--text2);
+      letter-spacing: 0.08em;
+      max-width: 360px;
+      margin: 0 auto 36px;
+      line-height: 1.7;
+    }
+    .hero-cta {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 13px 28px;
+      background: var(--text);
+      color: var(--bg);
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      transition: all var(--trans);
+    }
+    .hero-cta:hover {
+      background: var(--accent2);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 30px rgba(255,255,255,0.15);
+    }
+
+    /* ─── FILTER BAR ─────────────────────────────────── */
+    #filter-bar {
+      padding: 0 16px 24px;
+      display: flex; gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    #filter-bar::-webkit-scrollbar { display: none; }
+    .filter-btn {
+      flex-shrink: 0;
+      padding: 8px 18px;
+      border-radius: 100px;
+      border: 1px solid var(--border2);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      color: var(--text2);
+      background: var(--surface);
+      transition: all var(--trans);
+      white-space: nowrap;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      border-color: var(--text);
+      color: var(--text);
+      background: var(--accent-glow);
+    }
+
+    /* ─── CATALOG ────────────────────────────────────── */
+    #catalog { padding: 0 12px 80px; }
+    .section-header {
+      padding: 0 4px 20px;
+      display: flex; align-items: baseline; gap: 12px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      color: var(--text);
+    }
+    .section-count {
+      font-size: 11px;
+      color: var(--text3);
+      font-family: var(--font-mono);
+    }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    @media(min-width:540px){ .product-grid { grid-template-columns: repeat(3,1fr); gap: 12px; } }
+    @media(min-width:900px){ .product-grid { grid-template-columns: repeat(4,1fr); gap: 16px; } }
+    @media(min-width:1200px){ .product-grid { grid-template-columns: repeat(5,1fr); } }
+
+    /* ─── PRODUCT CARD ───────────────────────────────── */
+    .product-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all var(--trans);
+      animation: fadeUp 0.4s ease both;
+    }
+    .product-card:hover {
+      border-color: rgba(255,255,255,0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.07);
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(12px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .card-img {
+      aspect-ratio: 1;
+      background: var(--surface2);
+      position: relative;
+      overflow: hidden;
+    }
+    .card-img img { transition: transform 0.5s ease; }
+    .product-card:hover .card-img img { transform: scale(1.04); }
+    .card-img-placeholder {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 40px;
+      background: linear-gradient(135deg, var(--surface2), var(--surface));
+    }
+    .card-badge {
+      position: absolute; top: 8px; left: 8px;
+      background: var(--text);
+      color: var(--bg);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      border-radius: 100px;
+      text-transform: uppercase;
+    }
+    .card-badge.out { background: var(--border2); color: var(--text2); }
+    .card-body { padding: 10px 12px 12px; }
+    .card-brand {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 4px;
+    }
+    .card-name {
+      font-family: var(--font-display);
+      font-size: 14px;
+      line-height: 1.35;
+      color: var(--text);
+      margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .card-footer {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-price {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .card-compare {
+      font-size: 11px;
+      color: var(--text3);
+      text-decoration: line-through;
+      margin-left: 4px;
+    }
+    .card-wa {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      transition: all var(--trans);
+    }
+    .product-card:hover .card-wa {
+      background: #25D366;
+      border-color: #25D366;
+    }
+
+    /* ─── EMPTY / LOADING ────────────────────────────── */
+    .grid-empty {
+      grid-column: 1/-1;
+      padding: 80px 20px;
+      text-align: center;
+    }
+    .grid-empty .icon { font-size: 40px; margin-bottom: 16px; opacity:.4; }
+    .grid-empty p { color: var(--text2); font-size: 14px; }
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: var(--radius);
+    }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* ─── MODAL PRODUCTO ─────────────────────────────── */
+    .overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity var(--trans);
+    }
+    @media(min-width:640px){ .overlay { align-items: center; } }
+    .overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius) var(--radius) 0 0;
+      width: 100%; max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(30px);
+      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+      padding: 28px 24px 32px;
+    }
+    @media(min-width:640px){ .modal { border-radius: var(--radius); } }
+    .overlay.open .modal { transform: translateY(0); }
+    .modal-close {
+      position: absolute; top: 16px; right: 16px;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text2);
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .modal-img {
+      width: 100%; aspect-ratio: 1;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      background: var(--surface2);
+      margin-bottom: 20px;
+    }
+    .modal-brand { font-size: 10px; letter-spacing: 0.25em; color: var(--text2); text-transform: uppercase; margin-bottom: 6px; }
+    .modal-name { font-family: var(--font-display); font-size: 24px; margin-bottom: 12px; }
+    .modal-desc { font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 20px; }
+    .modal-price-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 24px; }
+    .modal-price { font-size: 26px; font-weight: 500; color: var(--text); }
+    .modal-compare { font-size: 14px; color: var(--text3); text-decoration: line-through; }
+    .btn-wa {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%;
+      padding: 15px;
+      background: #25D366;
+      color: #fff;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      transition: all var(--trans);
+    }
+    .btn-wa:hover { background: #20b858; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(37,211,102,0.3); }
+
+    /* ─── ADMIN TOGGLE ───────────────────────────────── */
+    #admin-fab {
+      position: fixed; bottom: 24px; right: 20px; z-index: 300;
+      width: 50px; height: 50px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      color: var(--text2);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      transition: all var(--trans);
+      cursor: pointer;
+    }
+    #admin-fab:hover { border-color: var(--text); color: var(--text); }
+
+    /* ─── ADMIN PANEL ────────────────────────────────── */
+    #admin-panel {
+      position: fixed; inset: 0; z-index: 400;
+      background: rgba(0,0,0,0.9);
+      backdrop-filter: blur(12px);
+      display: flex; align-items: stretch; justify-content: flex-end;
+      opacity: 0; pointer-events: none;
+      transition: opacity var(--trans);
+    }
+    #admin-panel.open { opacity: 1; pointer-events: all; }
+    .admin-drawer {
+      width: 100%; max-width: 420px;
+      background: var(--surface);
+      border-left: 1px solid var(--border2);
+      height: 100%;
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+      display: flex; flex-direction: column;
+    }
+    #admin-panel.open .admin-drawer { transform: translateX(0); }
+    .admin-head {
+      padding: 20px 20px 0;
+      position: sticky; top: 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      z-index: 1;
+    }
+    .admin-head h2 { font-family: var(--font-display); font-size: 18px; }
+    .admin-head span { font-size: 11px; color: var(--text2); letter-spacing: 0.1em; }
+    .admin-close {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--surface2); border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text2); font-size: 16px; cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    /* Login */
+    #admin-login {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 40px 24px; gap: 16px;
+    }
+    #admin-login h3 { font-family: var(--font-display); font-size: 20px; }
+    #admin-login p { font-size: 12px; color: var(--text2); text-align: center; }
+    #admin-login input { max-width: 280px; text-align: center; letter-spacing: 0.2em; }
+    #admin-login .btn-primary { max-width: 280px; }
+
+    /* Form */
+    #admin-form-section { padding: 20px; }
+    .form-title { font-family: var(--font-display); font-size: 16px; margin-bottom: 16px; color: var(--text); }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 11px; letter-spacing: 0.1em; color: var(--text2); margin-bottom: 5px; text-transform: uppercase; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* Product list in admin */
+    #admin-product-list { padding: 0 20px 100px; }
+    .admin-prod-item {
+      display: flex; gap: 12px; align-items: center;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      margin-bottom: 8px;
+      transition: border-color var(--trans);
+    }
+    .admin-prod-item:hover { border-color: var(--border2); }
+    .admin-prod-thumb {
+      width: 44px; height: 44px;
+      border-radius: 6px;
+      background: var(--surface);
+      overflow: hidden; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .admin-prod-info { flex: 1; min-width: 0; }
+    .admin-prod-name { font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .admin-prod-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
+    .admin-prod-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .btn-icon {
+      width: 30px; height: 30px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border2);
+      background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; color: var(--text2);
+      cursor: pointer; transition: all var(--trans);
+    }
+    .btn-icon:hover { border-color: var(--text); color: var(--text); }
+    .btn-icon.danger:hover { border-color: var(--danger); color: var(--danger); }
+    .toggle-avail {
+      width: 30px; height: 18px;
+      border-radius: 100px;
+      border: 1px solid var(--border2);
+      background: var(--border);
+      position: relative; cursor: pointer; transition: all var(--trans);
+    }
+    .toggle-avail.on { background: var(--text); border-color: var(--text); }
+    .toggle-avail::after {
+      content: '';
+      position: absolute; top: 2px; left: 2px;
+      width: 12px; height: 12px;
+      border-radius: 50%; background: #fff;
+      transition: transform var(--trans);
+    }
+    .toggle-avail.on::after { transform: translateX(12px); }
+
+    /* Buttons */
+    .btn-primary {
+      width: 100%; padding: 13px;
+      background: var(--text);
+      color: var(--bg);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      transition: all var(--trans);
+    }
+    .btn-primary:hover { background: var(--accent2); }
+    .btn-secondary {
+      width: 100%; padding: 11px;
+      background: transparent;
+      color: var(--text2);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      transition: all var(--trans);
+      margin-top: 8px;
+    }
+    .btn-secondary:hover { border-color: var(--text2); color: var(--text); }
+    .btn-danger {
+      width: 100%; padding: 11px;
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid rgba(192,57,43,0.3);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      transition: all var(--trans);
+      margin-top: 8px;
+    }
+    .btn-danger:hover { background: rgba(192,57,43,0.1); }
+
+    /* Divider */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+    /* Toast */
+    #toast {
+      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      padding: 10px 20px;
+      border-radius: 100px;
+      font-size: 13px;
+      white-space: nowrap;
+      z-index: 999;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.success { border-color: var(--success); color: var(--success); }
+    #toast.error { border-color: var(--danger); color: var(--danger); }
+
+    /* Realtime indicator */
+    #rt-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      display: inline-block;
+      margin-right: 6px;
+      animation: blink 2s ease infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* Footer */
+    #footer {
+      padding: 40px 20px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    .footer-logo { font-family: var(--font-display); font-size: 28px; letter-spacing: 0.3em; color: var(--text); margin-bottom: 8px; }
+    .footer-tag { font-size: 11px; letter-spacing: 0.2em; color: var(--text3); text-transform: uppercase; }
+  </style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="logo-load">INFYN</div>
+  <div class="bar"></div>
+</div>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-logo">INFYN</div>
+  <div class="nav-right">
+    <span class="nav-tagline">Estilo sin límites</span>
+    <button class="nav-btn" id="search-btn" title="Buscar">🔍</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <p class="hero-eyebrow">Nueva colección disponible</p>
+  <h1 class="hero-title">
+    Estilo sin límites,<br/>
+    <em>tecnología a tu alcance</em>
+  </h1>
+  <p class="hero-sub">Perfumería de diseñador y tecnología premium. Curado para quienes no hacen concesiones.</p>
+  <a href="#catalog" class="hero-cta">Explorar catálogo →</a>
+</section>
+
+<!-- FILTER BAR -->
+<div id="filter-bar">
+  <button class="filter-btn active" data-cat="all">Todos</button>
+  <button class="filter-btn" data-cat="perfumery">Perfumería</button>
+  <button class="filter-btn" data-cat="audio">Audio</button>
+  <button class="filter-btn" data-cat="accessories">Accesorios</button>
+  <button class="filter-btn" data-cat="cables">Cables</button>
+  <button class="filter-btn" data-cat="phones">Teléfonos</button>
+</div>
+
+<!-- CATALOG -->
+<section id="catalog">
+  <div class="section-header">
+    <h2 class="section-title">Catálogo</h2>
+    <span class="section-count" id="product-count">
+      <span id="rt-dot"></span><span id="count-num">—</span> productos
+    </span>
+  </div>
+  <div class="product-grid" id="product-grid">
+    <!-- Skeletons -->
+    <div class="skeleton" style="aspect-ratio:1;border-radius:12px"></div>
+    <div class="skeleton" style="aspect-ratio:1;border-radius:12px"></div>
+    <div class="skeleton" style="aspect-ratio:1;border-radius:12px"></div>
+    <div class="skeleton" style="aspect-ratio:1;border-radius:12px"></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="footer">
+  <div class="footer-logo">INFYN</div>
+  <p class="footer-tag">Estilo sin límites, tecnología a tu alcance</p>
+</footer>
+
+<!-- PRODUCT MODAL -->
+<div class="overlay" id="product-modal">
+  <div class="modal" style="position:relative">
+    <button class="modal-close" id="modal-close">✕</button>
+    <div class="modal-img" id="modal-img"></div>
+    <p class="modal-brand" id="modal-brand"></p>
+    <h2 class="modal-name" id="modal-name"></h2>
+    <p class="modal-desc" id="modal-desc"></p>
+    <div class="modal-price-row">
+      <span class="modal-price" id="modal-price"></span>
+      <span class="modal-compare" id="modal-compare"></span>
+    </div>
+    <a class="btn-wa" id="modal-wa" href="#" target="_blank">
+      <span>💬</span> Comprar por WhatsApp
+    </a>
+  </div>
+</div>
+
+<!-- ADMIN FAB -->
+<button id="admin-fab" title="Panel Admin">⚙️</button>
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel">
+  <div class="admin-drawer">
+    <div class="admin-head">
+      <div>
+        <h2>Panel Admin</h2>
+        <span>INFYN STORE</span>
+      </div>
+      <button class="admin-close" id="admin-close-btn">✕</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="admin-login">
+      <div style="font-size:32px">🔐</div>
+      <h3>Acceso Admin</h3>
+      <p>Ingresa la contraseña para gestionar tu tienda</p>
+      <input type="password" id="admin-pass" placeholder="Contraseña" />
+      <button class="btn-primary" id="admin-login-btn">Ingresar</button>
+    </div>
+
+    <!-- CONTENT (visible after login) -->
+    <div id="admin-content" style="display:none">
+
+      <!-- FORM -->
+      <div id="admin-form-section">
+        <p class="form-title" id="form-title">✦ Nuevo Producto</p>
+
+        <div class="form-group">
+          <label>Nombre del producto</label>
+          <input type="text" id="f-name" placeholder="Ej: iPhone 15 Pro" />
+        </div>
+        <div class="form-group">
+          <label>Marca</label>
+          <input type="text" id="f-brand" placeholder="Ej: Apple" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Precio (RD$)</label>
+            <input type="number" id="f-price" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label>Precio antes</label>
+            <input type="number" id="f-compare" placeholder="0" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Categoría</label>
+          <select id="f-category">
+            <option value="perfumery">Perfumería 🌸</option>
+            <option value="audio">Audio 🎧</option>
+            <option value="phones">Teléfonos 📱</option>
+            <option value="accessories">Accesorios ⌚</option>
+            <option value="cables">Cables & Cargadores 🔌</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>URL de imagen</label>
+          <input type="url" id="f-image" placeholder="https://..." />
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea id="f-desc" rows="3" placeholder="Descripción del producto..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Emoji (si no hay imagen)</label>
+          <input type="text" id="f-emoji" placeholder="🎧" maxlength="2" />
+        </div>
+
+        <button class="btn-primary" id="save-btn">Guardar Producto</button>
+        <button class="btn-secondary" id="cancel-edit-btn" style="display:none">Cancelar edición</button>
+
+        <hr class="divider" />
+        <button class="btn-secondary" id="admin-logout-btn">Cerrar sesión</button>
+      </div>
+
+      <!-- PRODUCT LIST -->
+      <div id="admin-product-list">
+        <p style="font-size:11px;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;margin-bottom:12px;padding:0 4px">Productos en tienda</p>
+        <div id="admin-items"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────────
+// ⚠️ REEMPLAZA ESTOS VALORES CON LOS DE TU PROYECTO SUPABASE
+const SUPABASE_URL = 'TU_SUPABASE_URL';
+const SUPABASE_KEY = 'TU_SUPABASE_ANON_KEY';
+const WHATSAPP_NUMBER = '18091234567'; // Tu número de WhatsApp con código de país
+const ADMIN_PASSWORD = 'infyn2024';    // Cambia esta contraseña
+
+// ─── INIT ─────────────────────────────────────────────────────────
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let allProducts = [];
+let filteredProducts = [];
+let currentCategory = 'all';
+let editingId = null;
+let isLoggedIn = false;
+
+// ─── LOADER ───────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const loader = document.getElementById('loader');
+    loader.style.opacity = '0';
+    loader.style.transition = 'opacity 0.5s ease';
+    setTimeout(() => loader.remove(), 500);
+  }, 1200);
+});
+
+// ─── SUPABASE ─────────────────────────────────────────────────────
+async function loadProducts() {
+  try {
+    const { data, error } = await sb
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    allProducts = data || [];
+    applyFilter(currentCategory);
+  } catch(e) {
+    console.error(e);
+    // Modo demo si no hay Supabase configurado
+    allProducts = getDemoProducts();
+    applyFilter(currentCategory);
+  }
+}
+
+// Realtime
+function subscribeRealtime() {
+  sb.channel('products-live')
+    .on('postgres_changes', {
+      event: '*', schema: 'public', table: 'products'
+    }, (payload) => {
+      if (payload.eventType === 'INSERT') {
+        allProducts.unshift(payload.new);
+        showToast('Nuevo producto añadido', 'success');
+      }
+      if (payload.eventType === 'UPDATE') {
+        const idx = allProducts.findIndex(p => p.id === payload.new.id);
+        if (idx !== -1) allProducts[idx] = payload.new;
+      }
+      if (payload.eventType === 'DELETE') {
+        allProducts = allProducts.filter(p => p.id !== payload.old.id);
+      }
+      applyFilter(currentCategory);
+      renderAdminItems();
+    })
+    .subscribe();
+}
+
+// ─── RENDER CATÁLOGO ──────────────────────────────────────────────
+function applyFilter(cat) {
+  currentCategory = cat;
+  filteredProducts = cat === 'all'
+    ? allProducts
+    : allProducts.filter(p => p.category === cat);
+
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.cat === cat);
+  });
+
+  document.getElementById('count-num').textContent = filteredProducts.length;
+  renderGrid();
+}
+
+function renderGrid() {
+  const grid = document.getElementById('product-grid');
+  if (!filteredProducts.length) {
+    grid.innerHTML = `<div class="grid-empty"><div class="icon">🔍</div><p>No hay productos en esta categoría</p></div>`;
+    return;
+  }
+  grid.innerHTML = filteredProducts.map((p, i) => productCardHTML(p, i)).join('');
+
+  // Attach events
+  grid.querySelectorAll('.product-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.card-wa')) return;
+      openProductModal(card.dataset.id);
+    });
+  });
+}
+
+function productCardHTML(p, i) {
+  const imgHtml = p.image_url
+    ? `<img src="${p.image_url}" alt="${p.name}" loading="lazy" />`
+    : `<div class="card-img-placeholder">${p.emoji || categoryEmoji(p.category)}</div>`;
+
+  const badge = !p.is_available
+    ? `<span class="card-badge out">Agotado</span>`
+    : p.compare_price
+    ? `<span class="card-badge">Oferta</span>`
+    : '';
+
+  const compare = p.compare_price
+    ? `<span class="card-compare">RD$ ${Number(p.compare_price).toLocaleString('es-DO')}</span>`
+    : '';
+
+  const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hola! Me interesa *${p.name}* - RD$ ${Number(p.price).toLocaleString('es-DO')} 🛍️`)}`;
+
+  return `
+    <div class="product-card" data-id="${p.id}" style="animation-delay:${i * 0.06}s">
+      <div class="card-img">
+        ${imgHtml}
+        ${badge}
+      </div>
+      <div class="card-body">
+        <p class="card-brand">${p.brand || ''}</p>
+        <h3 class="card-name">${p.name}</h3>
+        <div class="card-footer">
+          <div>
+            <span class="card-price">RD$ ${Number(p.price).toLocaleString('es-DO')}</span>
+            ${compare}
+          </div>
+          <a class="card-wa" href="${waLink}" target="_blank" title="Comprar por WhatsApp">💬</a>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ─── MODAL PRODUCTO ───────────────────────────────────────────────
+function openProductModal(id) {
+  const p = allProducts.find(x => x.id == id);
+  if (!p) return;
+
+  const imgEl = document.getElementById('modal-img');
+  imgEl.innerHTML = p.image_url
+    ? `<img src="${p.image_url}" alt="${p.name}" />`
+    : `<div class="card-img-placeholder" style="width:100%;height:100%">${p.emoji || categoryEmoji(p.category)}</div>`;
+
+  document.getElementById('modal-brand').textContent = p.brand || '';
+  document.getElementById('modal-name').textContent = p.name;
+  document.getElementById('modal-desc').textContent = p.description || 'Producto premium curado por INFYN.';
+  document.getElementById('modal-price').textContent = `RD$ ${Number(p.price).toLocaleString('es-DO')}`;
+
+  const cmp = document.getElementById('modal-compare');
+  cmp.textContent = p.compare_price ? `RD$ ${Number(p.compare_price).toLocaleString('es-DO')}` : '';
+
+  document.getElementById('modal-wa').href =
+    `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hola! Quiero comprar *${p.name}* por RD$ ${Number(p.price).toLocaleString('es-DO')} 🛒`)}`;
+
+  document.getElementById('product-modal').classList.add('open');
+}
+
+document.getElementById('modal-close').addEventListener('click', () => {
+  document.getElementById('product-modal').classList.remove('open');
+});
+document.getElementById('product-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+});
+
+// ─── FILTERS ──────────────────────────────────────────────────────
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => applyFilter(btn.dataset.cat));
+});
+
+// ─── ADMIN LOGIN ──────────────────────────────────────────────────
+document.getElementById('admin-fab').addEventListener('click', () => {
+  document.getElementById('admin-panel').classList.add('open');
+});
+document.getElementById('admin-close-btn').addEventListener('click', () => {
+  document.getElementById('admin-panel').classList.remove('open');
+});
+document.getElementById('admin-panel').addEventListener('click', e => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+});
+
+document.getElementById('admin-login-btn').addEventListener('click', () => {
+  const pass = document.getElementById('admin-pass').value;
+  if (pass === ADMIN_PASSWORD) {
+    isLoggedIn = true;
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('admin-content').style.display = 'block';
+    renderAdminItems();
+    showToast('Bienvenido a INFYN Admin', 'success');
+  } else {
+    showToast('Contraseña incorrecta', 'error');
+    document.getElementById('admin-pass').style.borderColor = 'var(--danger)';
+    setTimeout(() => document.getElementById('admin-pass').style.borderColor = '', 1500);
+  }
+});
+document.getElementById('admin-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('admin-login-btn').click();
+});
+
+document.getElementById('admin-logout-btn').addEventListener('click', () => {
+  isLoggedIn = false;
+  document.getElementById('admin-login').style.display = 'flex';
+  document.getElementById('admin-content').style.display = 'none';
+  document.getElementById('admin-pass').value = '';
+  editingId = null;
+  resetForm();
+});
+
+// ─── ADMIN CRUD ───────────────────────────────────────────────────
+document.getElementById('save-btn').addEventListener('click', async () => {
+  const name = document.getElementById('f-name').value.trim();
+  const price = parseFloat(document.getElementById('f-price').value);
+
+  if (!name || !price) {
+    showToast('Nombre y precio son obligatorios', 'error');
+    return;
+  }
+
+  const productData = {
+    name,
+    brand:         document.getElementById('f-brand').value.trim(),
+    price,
+    compare_price: parseFloat(document.getElementById('f-compare').value) || null,
+    category:      document.getElementById('f-category').value,
+    image_url:     document.getElementById('f-image').value.trim() || null,
+    description:   document.getElementById('f-desc').value.trim(),
+    emoji:         document.getElementById('f-emoji').value.trim() || null,
+    is_available:  true,
+  };
+
+  try {
+    let error;
+    if (editingId) {
+      ({ error } = await sb.from('products').update(productData).eq('id', editingId));
+    } else {
+      ({ error } = await sb.from('products').insert(productData));
+    }
+    if (error) throw error;
+    showToast(editingId ? 'Producto actualizado ✓' : 'Producto añadido ✓', 'success');
+    resetForm();
+  } catch(e) {
+    // Sin Supabase: modo demo local
+    if (editingId) {
+      const idx = allProducts.findIndex(p => p.id === editingId);
+      if (idx !== -1) allProducts[idx] = { ...allProducts[idx], ...productData };
+      showToast('Producto actualizado (demo)', 'success');
+    } else {
+      allProducts.unshift({ id: Date.now(), ...productData, created_at: new Date().toISOString() });
+      showToast('Producto añadido (demo)', 'success');
+    }
+    applyFilter(currentCategory);
+    renderAdminItems();
+    resetForm();
+  }
+});
+
+document.getElementById('cancel-edit-btn').addEventListener('click', resetForm);
+
+function resetForm() {
+  editingId = null;
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-brand').value = '';
+  document.getElementById('f-price').value = '';
+  document.getElementById('f-compare').value = '';
+  document.getElementById('f-image').value = '';
+  document.getElementById('f-desc').value = '';
+  document.getElementById('f-emoji').value = '';
+  document.getElementById('f-category').value = 'perfumery';
+  document.getElementById('form-title').textContent = '✦ Nuevo Producto';
+  document.getElementById('save-btn').textContent = 'Guardar Producto';
+  document.getElementById('cancel-edit-btn').style.display = 'none';
+}
+
+function editProduct(id) {
+  const p = allProducts.find(x => x.id == id);
+  if (!p) return;
+  editingId = id;
+  document.getElementById('f-name').value = p.name || '';
+  document.getElementById('f-brand').value = p.brand || '';
+  document.getElementById('f-price').value = p.price || '';
+  document.getElementById('f-compare').value = p.compare_price || '';
+  document.getElementById('f-image').value = p.image_url || '';
+  document.getElementById('f-desc').value = p.description || '';
+  document.getElementById('f-emoji').value = p.emoji || '';
+  document.getElementById('f-category').value = p.category || 'perfumery';
+  document.getElementById('form-title').textContent = '✦ Editando Producto';
+  document.getElementById('save-btn').textContent = 'Actualizar Producto';
+  document.getElementById('cancel-edit-btn').style.display = 'block';
+  document.getElementById('admin-form-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function deleteProduct(id) {
+  if (!confirm('¿Eliminar este producto?')) return;
+  try {
+    const { error } = await sb.from('products').delete().eq('id', id);
+    if (error) throw error;
+    showToast('Producto eliminado', 'success');
+  } catch {
+    allProducts = allProducts.filter(p => p.id != id);
+    applyFilter(currentCategory);
+    renderAdminItems();
+    showToast('Producto eliminado (demo)', 'success');
+  }
+}
+
+async function toggleAvailability(id, currentVal) {
+  try {
+    const { error } = await sb.from('products')
+      .update({ is_available: !currentVal })
+      .eq('id', id);
+    if (error) throw error;
+  } catch {
+    const p = allProducts.find(x => x.id == id);
+    if (p) p.is_available = !currentVal;
+    applyFilter(currentCategory);
+    renderAdminItems();
+  }
+}
+
+function renderAdminItems() {
+  const container = document.getElementById('admin-items');
+  if (!allProducts.length) {
+    container.innerHTML = '<p style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0">No hay productos aún</p>';
+    return;
+  }
+  container.innerHTML = allProducts.map(p => `
+    <div class="admin-prod-item">
+      <div class="admin-prod-thumb">
+        ${p.image_url
+          ? `<img src="${p.image_url}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px" />`
+          : (p.emoji || categoryEmoji(p.category))
+        }
+      </div>
+      <div class="admin-prod-info">
+        <p class="admin-prod-name">${p.name}</p>
+        <p class="admin-prod-meta">RD$ ${Number(p.price).toLocaleString('es-DO')} · ${categoryLabel(p.category)}</p>
+      </div>
+      <div class="admin-prod-actions">
+        <button class="toggle-avail ${p.is_available ? 'on' : ''}" onclick="toggleAvailability('${p.id}', ${p.is_available})" title="${p.is_available ? 'Visible' : 'Oculto'}"></button>
+        <button class="btn-icon" onclick="editProduct('${p.id}')" title="Editar">✏️</button>
+        <button class="btn-icon danger" onclick="deleteProduct('${p.id}')" title="Eliminar">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── SEARCH ───────────────────────────────────────────────────────
+document.getElementById('search-btn').addEventListener('click', () => {
+  const q = prompt('Buscar producto:');
+  if (!q) return;
+  const results = allProducts.filter(p =>
+    p.name.toLowerCase().includes(q.toLowerCase()) ||
+    (p.brand && p.brand.toLowerCase().includes(q.toLowerCase()))
+  );
+  filteredProducts = results;
+  document.getElementById('count-num').textContent = results.length;
+  renderGrid();
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+});
+
+// ─── HELPERS ──────────────────────────────────────────────────────
+function categoryEmoji(cat) {
+  const map = { perfumery:'🌸', audio:'🎧', phones:'📱', accessories:'⌚', cables:'🔌' };
+  return map[cat] || '📦';
+}
+function categoryLabel(cat) {
+  const map = { perfumery:'Perfumería', audio:'Audio', phones:'Teléfonos', accessories:'Accesorios', cables:'Cables' };
+  return map[cat] || cat;
+}
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `show ${type}`;
+  setTimeout(() => t.className = '', 3000);
+}
+
+// ─── DEMO PRODUCTS (cuando no hay Supabase) ───────────────────────
+function getDemoProducts() {
+  return [
+    { id:1, name:'Bleu de Chanel EDP', brand:'Chanel', price:8500, compare_price:9800, category:'perfumery', emoji:'🌸', description:'Fragancia fresca y amaderada de larga duración.', is_available:true },
+    { id:2, name:'AirPods Pro 2da Gen', brand:'Apple', price:14500, compare_price:null, category:'audio', emoji:'🎧', description:'Audio espacial con cancelación activa de ruido.', is_available:true },
+    { id:3, name:'iPhone 15 Pro', brand:'Apple', price:82000, compare_price:88000, category:'phones', emoji:'📱', description:'Titanio. Cámara 48MP. Chip A17 Pro.', is_available:true },
+    { id:4, name:'Cable USB-C 100W', brand:'Anker', price:950, compare_price:null, category:'cables', emoji:'🔌', description:'Carga rápida, trenzado, 2 metros.', is_available:true },
+    { id:5, name:'La Nuit de l\'Homme', brand:'Yves Saint Laurent', price:7200, compare_price:8500, category:'perfumery', emoji:'🌸', description:'Oriental especiado. Intenso y seductor.', is_available:true },
+    { id:6, name:'Galaxy Watch 6', brand:'Samsung', price:12800, compare_price:null, category:'accessories', emoji:'⌚', description:'Monitoreo de salud avanzado. Bisel rotatorio.', is_available:true },
+  ];
+}
+
+// ─── INIT APP ─────────────────────────────────────────────────────
+(async function init() {
+  await loadProducts();
+  subscribeRealtime();
+})();
+</script>
+</body>
+</html>
