@@ -1,1 +1,1 @@
-# INFYN-
+# INFYN
