@@ -798,7 +798,11 @@ const WHATSAPP_NUMBER = '18091234567'; // Tu número de WhatsApp con código de 
 const ADMIN_PASSWORD = 'infyn2024';    // Cambia esta contraseña
 
 // ─── INIT ─────────────────────────────────────────────────────────
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_CONFIGURED = SUPABASE_URL !== 'TU_SUPABASE_URL';
+let sb = null;
+try {
+  if (SUPABASE_CONFIGURED) sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+} catch(e) { console.warn('Supabase no configurado, modo demo activo'); }
 
 let allProducts = [];
 let filteredProducts = [];
@@ -807,29 +811,28 @@ let editingId = null;
 let isLoggedIn = false;
 
 // ─── LOADER ───────────────────────────────────────────────────────
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    const loader = document.getElementById('loader');
-    loader.style.opacity = '0';
-    loader.style.transition = 'opacity 0.5s ease';
-    setTimeout(() => loader.remove(), 500);
-  }, 1200);
-});
+function hideLoader() {
+  const loader = document.getElementById('loader');
+  if (!loader) return;
+  loader.style.opacity = '0';
+  loader.style.transition = 'opacity 0.5s ease';
+  setTimeout(() => loader.remove(), 500);
+}
+setTimeout(hideLoader, 1500);
+document.addEventListener('DOMContentLoaded', () => setTimeout(hideLoader, 800));
 
 // ─── SUPABASE ─────────────────────────────────────────────────────
 async function loadProducts() {
   try {
+    if (!SUPABASE_CONFIGURED || !sb) throw new Error('demo');
     const { data, error } = await sb
       .from('products')
       .select('*')
       .order('created_at', { ascending: false });
-
     if (error) throw error;
     allProducts = data || [];
     applyFilter(currentCategory);
   } catch(e) {
-    console.error(e);
-    // Modo demo si no hay Supabase configurado
     allProducts = getDemoProducts();
     applyFilter(currentCategory);
   }
@@ -837,6 +840,7 @@ async function loadProducts() {
 
 // Realtime
 function subscribeRealtime() {
+  if (!SUPABASE_CONFIGURED || !sb) return;
   sb.channel('products-live')
     .on('postgres_changes', {
       event: '*', schema: 'public', table: 'products'
@@ -1189,4 +1193,4 @@ function getDemoProducts() {
 })();
 </script>
 </body>
-</html>
+  </html>
